@@ -29,12 +29,17 @@ public class AppointmentService {
 	AppointmentRestTemplate appointmentRestTemplate;
 	@Autowired
 	OwnerRepository ownerRepository;
+	@Autowired
+	AmqpSender amqpSender;
 
 
 	//客戶建立訂單
 	public MedicalRecord createAppointment(CreateAppointmentDTO createAppointmentDTO){
 		MedicalRecord medicalRecord = medicalRecordService.createMedicalRecord(createAppointmentDTO);
-		appointmentRestTemplate.createNewRecord(medicalRecord);
+//		appointmentRestTemplate.createNewRecord(medicalRecord);
+		amqpSender.createMedicine(medicalRecord);
+		amqpSender.createConsultation(medicalRecord);
+		amqpSender.createConsultation(medicalRecord);
 		appointmentRepository.save(new AppointmentEntity(medicalRecord, createAppointmentDTO));
 		return medicalRecord;
 	}
