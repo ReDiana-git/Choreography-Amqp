@@ -19,4 +19,8 @@ public class AmqpSender {
     public void createPayment(MedicalRecord medicalRecord){
         template.convertAndSend("createPayment", "createPayment", medicalRecord);
     }
+
+    public void returnMedicine2Medicine(MedicalRecord medicalRecord) {
+        template.convertAndSend("returnMedicine2Medicine", "returnMedicine2Medicine", medicalRecord);
+    }
 }

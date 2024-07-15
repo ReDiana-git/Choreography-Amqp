@@ -6,6 +6,7 @@ import nl.nl0e0.petclinicentity.model.AppointmentState;
 import nl.nl0e0.petclinicentity.payment.*;
 import nl.nl0e0.paymentamqp.repository.PaymentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -14,6 +15,10 @@ public class PaymentService {
     PaymentRepository repository;
     @Autowired
     PaymentRestTemplate restTemplate;
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
+    @Autowired
+    AmqpSender amqpSender;
 
     public void createPayment(String paymentId){
         PaymentEntity payment = new PaymentEntity();
@@ -28,12 +33,8 @@ public class PaymentService {
     public Integer getPayment(String paymentId) {
         return repository.findById(paymentId).getPrice();
     }
-    public PaymentInfoDTO getPaymentInfo(String recordId){
-//        MedicalRecord medicalRecord = medicalRecordService.findByRecordId(recordId);
-        MedicalRecord medicalRecord = restTemplate.getRecordById(recordId);
-        PaymentEntity paymentEntity = repository.findById(medicalRecord.getPaymentId());
-        PaymentInfoDTO paymentInfoDTO = new PaymentInfoDTO(recordId, paymentEntity.getPrice(), medicalRecord.getState());
-        return paymentInfoDTO;
+    public void getPaymentInfo(String recordId){
+        amqpSender.getRecord2Payment(recordId);
     }
     public PaymentSucessDTO payment(PaymentDTO paymentDTO){
         CardEntity cardEntity = new CardEntity(paymentDTO.getCardNumber(), paymentDTO.getCardFirstName(), paymentDTO.getCardLastName(), paymentDTO.getCheckNum());
@@ -63,5 +64,19 @@ public class PaymentService {
                 checkNumSum += tmp;
         }
         return (cardNum.charAt(15) - '0') == (10 - checkNumSum % 10);
+    }
+
+    public void saveReturnMedicalRecord(MedicalRecord medicalRecord) {
+        PaymentEntity paymentEntity = repository.findById(medicalRecord.getPaymentId());
+        if(paymentEntity.getPrice() == null)
+            paymentEntity.setPrice(0);
+        PaymentInfoDTO paymentInfoDTO = new PaymentInfoDTO(medicalRecord.getId(), paymentEntity.getPrice(), medicalRecord.getState());
+        redisTemplate.opsForValue().set(medicalRecord.getId(), paymentInfoDTO);
+        System.out.println("Store data to Redis success.");
+    }
+
+    public PaymentInfoDTO reGetPaymentInfo(String recordId) {
+        PaymentInfoDTO paymentInfoDTO = (PaymentInfoDTO)redisTemplate.opsForValue().getAndDelete(recordId);
+        return paymentInfoDTO;
     }
 }

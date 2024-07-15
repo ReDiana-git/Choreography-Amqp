@@ -68,4 +68,42 @@ public class AmqpConfig {
                 .with("createMedicine")
                 .noargs();
     }
+    @Bean
+    public Queue createGetRecord2PaymentQueue() {
+        return new Queue("getRecord2Payment", false);
+    }
+
+    @Bean
+    public Exchange createGetRecord2PaymentExchange()
+    {
+        return new DirectExchange("getRecord2Payment");
+    }
+
+    @Bean
+    public Binding bindingGetRecord2Payment(Queue createGetRecord2PaymentQueue, Exchange createGetRecord2PaymentExchange)
+    {
+        return BindingBuilder.bind(createGetRecord2PaymentQueue)
+                .to(createGetRecord2PaymentExchange)
+                .with("getRecord2Payment")
+                .noargs();
+    }
+    @Bean
+    public Queue createReturnMedicine2MedicineQueue() {
+        return new Queue("returnMedicine2Medicine", false);
+    }
+
+    @Bean
+    public Exchange createReturnMedicine2MedicineExchange()
+    {
+        return new DirectExchange("returnMedicine2Medicine");
+    }
+
+    @Bean
+    public Binding bindingReturnMedicine2Medicine(Queue createReturnMedicine2MedicineQueue, Exchange createReturnMedicine2MedicineExchange)
+    {
+        return BindingBuilder.bind(createReturnMedicine2MedicineQueue)
+                .to(createReturnMedicine2MedicineExchange)
+                .with("returnMedicine2Medicine")
+                .noargs();
+    }
 }

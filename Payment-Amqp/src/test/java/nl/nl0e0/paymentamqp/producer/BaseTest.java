@@ -1,8 +1,8 @@
-package nl.nl0e0.appointmentamqp.contract.producer;
+package nl.nl0e0.paymentamqp.producer;
 
-import nl.nl0e0.appointmentamqp.AppointmentAmqpApplication;
-import nl.nl0e0.appointmentamqp.controller.AppointmentController;
-import nl.nl0e0.petclinicentity.appointment.CreateAppointmentDTO;
+import nl.nl0e0.paymentamqp.PaymentAmqpApplication;
+import nl.nl0e0.paymentamqp.controller.PaymentController;
+import nl.nl0e0.paymentamqp.service.PaymentService;
 import org.junit.jupiter.api.BeforeEach;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,12 +25,10 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import javax.annotation.Nullable;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE, classes = {TestConfig.class, AppointmentAmqpApplication.class}, properties = "stubrunner.amqp.mockConnection=false")
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE, classes = {TestConfig.class, PaymentAmqpApplication.class}, properties = "stubrunner.amqp.mockConnection=false")
 @Testcontainers
 @AutoConfigureMessageVerifier
 public class BaseTest {
@@ -43,22 +41,19 @@ public class BaseTest {
     }
 
     @Autowired
-    AppointmentController appointmentController;
+    PaymentService paymentService;
+    @Autowired
+    PaymentController paymentController;
     @Autowired
     RabbitMessageVerifier rabbitMessageVerifier;
     @BeforeEach
     void clearQueue(){
         rabbitMessageVerifier.clearQueue();
     }
-    public void createAppointmentTrigger(){
-        String dateTimeString = "2024-07-05T14:45:33.851107";
-        LocalDateTime dateTime = LocalDateTime.parse(dateTimeString, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-        CreateAppointmentDTO dto = new CreateAppointmentDTO();
-        dto.setAppointmentDate(dateTime);
-        dto.setPetId(2);
-        dto.setOwnerId(1);
-        dto.setVetId(1);
-        appointmentController.createAppointment(dto);
+
+    public void getPaymentInfoTrigger(){
+        String recordId = "ee9a168b-b9ae-42ed-8b4c-0f06148574d0";
+        paymentController.getPaymentInfo(recordId);
     }
 }
 class RabbitMessageVerifier implements MessageVerifierReceiver<Message> {
@@ -79,21 +74,12 @@ class RabbitMessageVerifier implements MessageVerifierReceiver<Message> {
         }
     }
 
-    @RabbitListener(queues = "createConsultation")
+    @RabbitListener(queues = "getRecord2Payment")
     public void listen4consultation(Message message) {
         log.info("Got a message from createConsultation! [{}]", message);
         queue.add(message);
     }
-    @RabbitListener(queues = "createPayment")
-    public void listen4payment(Message message) {
-        log.info("Got a message from createPayment! [{}]", message);
-        queue.add(message);
-    }
-    @RabbitListener(queues = "createMedicine")
-    public void listen4medicine(Message message) {
-        log.info("Got a message from createMedicine! [{}]", message);
-        queue.add(message);
-    }
+
 
     @Override
     public Message receive(String destination, YamlContract contract) {

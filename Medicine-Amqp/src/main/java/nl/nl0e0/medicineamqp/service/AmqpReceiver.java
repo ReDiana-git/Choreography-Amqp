@@ -9,9 +9,11 @@ import org.springframework.stereotype.Component;
 public class AmqpReceiver {
     @Autowired
     MedicineService medicineService;
+
+    public MedicalRecord store;
     @RabbitListener(queues = "createMedicine")
     public void createConsultation(MedicalRecord medicalRecord){
-//        store = medicalRecord;
+        store = medicalRecord;
         medicineService.createMedicine(medicalRecord.getConsultationId());
     }
 }

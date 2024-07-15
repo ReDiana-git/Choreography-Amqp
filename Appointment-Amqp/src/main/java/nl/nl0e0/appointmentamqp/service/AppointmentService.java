@@ -39,7 +39,7 @@ public class AppointmentService {
 //		appointmentRestTemplate.createNewRecord(medicalRecord);
 		amqpSender.createMedicine(medicalRecord);
 		amqpSender.createConsultation(medicalRecord);
-		amqpSender.createConsultation(medicalRecord);
+		amqpSender.createPayment(medicalRecord);
 		appointmentRepository.save(new AppointmentEntity(medicalRecord, createAppointmentDTO));
 		return medicalRecord;
 	}

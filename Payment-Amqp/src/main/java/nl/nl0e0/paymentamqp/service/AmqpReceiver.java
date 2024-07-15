@@ -9,9 +9,16 @@ import org.springframework.stereotype.Component;
 public class AmqpReceiver {
     @Autowired
     PaymentService paymentService;
+
+    public MedicalRecord store;
     @RabbitListener(queues = "createPayment")
     public void createConsultation(MedicalRecord medicalRecord){
-//        store = medicalRecord;
-        paymentService.createPayment(medicalRecord.getConsultationId());
+        store = medicalRecord;
+        paymentService.createPayment(medicalRecord.getPaymentId());
+    }
+    @RabbitListener(queues = "returnMedicine2Medicine")
+    public void returnMedicine2Medicine(MedicalRecord medicalRecord){
+        store = medicalRecord;
+        paymentService.saveReturnMedicalRecord(medicalRecord);
     }
 }
