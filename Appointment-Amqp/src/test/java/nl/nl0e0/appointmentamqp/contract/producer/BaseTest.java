@@ -2,6 +2,7 @@ package nl.nl0e0.appointmentamqp.contract.producer;
 
 import nl.nl0e0.appointmentamqp.AppointmentAmqpApplication;
 import nl.nl0e0.appointmentamqp.controller.AppointmentController;
+import nl.nl0e0.appointmentamqp.service.AmqpReceiver;
 import nl.nl0e0.petclinicentity.appointment.CreateAppointmentDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.slf4j.Logger;
@@ -46,6 +47,8 @@ public class BaseTest {
     AppointmentController appointmentController;
     @Autowired
     RabbitMessageVerifier rabbitMessageVerifier;
+    @Autowired
+    AmqpReceiver amqpReceiver;
     @BeforeEach
     void clearQueue(){
         rabbitMessageVerifier.clearQueue();
@@ -59,6 +62,10 @@ public class BaseTest {
         dto.setOwnerId(1);
         dto.setVetId(1);
         appointmentController.createAppointment(dto);
+    }
+    public void returnMedicine2MedicineTriger(){
+        String recordId = "ee9a168b-b9ae-42ed-8b4c-0f06148574d0";
+        amqpReceiver.getRecord2Payment(recordId);
     }
 }
 class RabbitMessageVerifier implements MessageVerifierReceiver<Message> {
@@ -91,6 +98,11 @@ class RabbitMessageVerifier implements MessageVerifierReceiver<Message> {
     }
     @RabbitListener(queues = "createMedicine")
     public void listen4medicine(Message message) {
+        log.info("Got a message from createMedicine! [{}]", message);
+        queue.add(message);
+    }
+    @RabbitListener(queues = "returnMedicine2Medicine")
+    public void returnMedicine2MedicineTriger(Message message){
         log.info("Got a message from createMedicine! [{}]", message);
         queue.add(message);
     }

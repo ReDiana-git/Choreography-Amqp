@@ -5,14 +5,14 @@ Contract.make {
     label "send_message_to_payment"
 
     input {
-        triggeredBy("createAppointmentTrigger()")
+        triggeredBy("returnMedicine2MedicineTriger()")
     }
 
     outputMessage {
-        sentTo "createPayment"
+        sentTo "returnMedicine2Medicine"
         body([
                 ownerId: 1,
-                petId: 2,
+                petId: 1,
                 vetId: 1,
                 id: $(anyNonBlankString()),
                 appointmentId: $(anyNonBlankString()),
